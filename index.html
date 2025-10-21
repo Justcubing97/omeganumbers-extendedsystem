@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OmegaNumbers — Basic UI</title>
+  <style>
+    :root{font-family:Segoe UI,Roboto,Arial, sans-serif;color:#222}
+    body{margin:0;padding:24px;background:#f5f7fb}
+    .container{max-width:760px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 6px 20px rgba(20,30,60,.08)}
+    header{display:flex;align-items:center;gap:12px}
+    h1{font-size:18px;margin:0}
+    .controls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+    input[type="text"]{padding:8px 10px;border:1px solid #d6dbe6;border-radius:6px;min-width:180px}
+    button{padding:8px 12px;border:0;border-radius:6px;background:#0366d6;color:white;cursor:pointer}
+    button.secondary{background:#6c757d}
+    ul{margin-top:12px;padding-left:20px}
+    .result{margin-top:16px;padding:12px;border-radius:6px;background:#f1f6ff;border:1px solid #dbeeff}
+    .row{display:flex;gap:8px;align-items:center}
+    @media (max-width:520px){.controls{flex-direction:column}input[type="text"]{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <rect width="24" height="24" rx="6" fill="#0366d6"/>
+        <text x="12" y="16" font-size="12" text-anchor="middle" fill="#fff" font-family="Segoe UI, Roboto, Arial">Ω</text>
+      </svg>
+      <h1>OmegaNumbers — Basic UI</h1>
+    </header>
+
+    <p>Enter items, then run a simple operation (example: sum).</p>
+
+    <div class="controls">
+      <input id="itemInput" placeholder="Enter a number or label" />
+      <button id="addBtn">Add item</button>
+      <button id="clearBtn" class="secondary">Clear list</button>
+      <button id="sumBtn" style="margin-left:auto">Sum numeric items</button>
+    </div>
+
+    <ul id="itemsList" aria-live="polite"></ul>
+
+    <div class="result" id="resultBox">Result will appear here.</div>
+  </div>
+
+  <script>
+    const input = document.getElementById('itemInput');
+    const addBtn = document.getElementById('addBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const sumBtn = document.getElementById('sumBtn');
+    const listEl = document.getElementById('itemsList');
+    const resultBox = document.getElementById('resultBox');
+
+    const items = [];
+
+    function renderList() {
+      listEl.innerHTML = '';
+      items.forEach((it, idx) => {
+        const li = document.createElement('li');
+        const text = document.createElement('span');
+        text.textContent = it;
+        const rm = document.createElement('button');
+        rm.textContent = 'Remove';
+        rm.style.marginLeft = '8px';
+        rm.onclick = () => { items.splice(idx,1); renderList(); updateResult(''); };
+        li.appendChild(text);
+        li.appendChild(rm);
+        listEl.appendChild(li);
+      });
+    }
+
+    function updateResult(text) {
+      resultBox.textContent = text || 'Result will appear here.';
+    }
+
+    addBtn.addEventListener('click', () => {
+      const v = input.value.trim();
+      if (!v) return;
+      items.push(v);
+      input.value = '';
+      renderList();
+      updateResult('');
+      input.focus();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      items.length = 0;
+      renderList();
+      updateResult('');
+    });
+
+    sumBtn.addEventListener('click', () => {
+      const nums = items.map(x => Number(x)).filter(n => !Number.isNaN(n));
+      const nonNums = items.filter(x => Number.isNaN(Number(x)));
+      if (nums.length === 0) { updateResult('No numeric items to sum.'); return; }
+      const sum = nums.reduce((a,b)=>a+b,0);
+      updateResult(`Sum = ${sum}` + (nonNums.length ? ` (ignored non-numeric: ${nonNums.join(', ')})` : ''));
+    });
+
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') addBtn.click(); });
+
+    // initial render
+    renderList();
+  </script>
+</body>
+</html>
